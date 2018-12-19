@@ -36,7 +36,7 @@ class ImplicitsSpec extends UnitTest {
     }
 
     "convert ScalarResource to proto and back" in {
-      val caseClass = ScalarResource("cpus", 4.0)
+      val caseClass = ScalarResource("cpus", 4.0, Some("*"))
       assert(caseClass == ((caseClass: Protos.Resource): Resource))
     }
 
@@ -78,7 +78,7 @@ class ImplicitsSpec extends UnitTest {
         FrameworkID("marathon"),
         SlaveID("slave-1"),
         "host1.example.com",
-        Seq(ScalarResource("cpus", 4), ScalarResource("mem", 4096)),
+        Seq(ScalarResource("cpus", 4, Some("*")), ScalarResource("mem", 4096, Some("*"))),
         Seq(TextAttribute("region", "us-west-2")),
         Seq(ExecutorID("exe-1"))
       )

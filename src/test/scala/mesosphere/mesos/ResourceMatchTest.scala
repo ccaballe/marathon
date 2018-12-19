@@ -1,5 +1,7 @@
 package mesosphere.mesos
 
+import java.util
+
 import mesosphere.UnitTest
 import mesosphere.marathon.tasks.{PortsMatch, PortsMatcher}
 import mesosphere.marathon.test.MarathonTestHelper
@@ -12,12 +14,11 @@ class ResourceMatchTest extends UnitTest {
       Given("a resource match with reservations")
       val memReservation = MarathonTestHelper.reservation(principal = "memPrincipal", labels = Map("resource" -> "mem"))
       val portReservation = MarathonTestHelper.reservation(principal = "portPrincipal", labels = Map("resource" -> "ports"))
-
       val resourceMatch = ResourceMatcher.ResourceMatch(
         scalarMatches = Seq(
           GeneralScalarMatch(
             "mem", 128.0,
-            consumed = Seq(GeneralScalarMatch.Consumption(128.0, "role1", None, reservation = Some(memReservation))),
+            consumed = Seq(GeneralScalarMatch.Consumption(128.0, Some("role1"), None, reservation = Some(memReservation), None)),
             scope = ScalarMatchResult.Scope.NoneDisk
           )
         ),

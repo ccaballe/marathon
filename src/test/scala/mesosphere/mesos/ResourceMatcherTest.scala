@@ -1,5 +1,6 @@
 package mesosphere.mesos
 
+import java.util.UUID
 import mesosphere.UnitTest
 import mesosphere.marathon.Protos.Constraint
 import mesosphere.marathon.Protos.Constraint.Operator
@@ -25,7 +26,6 @@ import mesosphere.util.state.FrameworkId
 import org.apache.mesos.Protos.Attribute
 import org.scalatest.Inside
 import org.scalatest.prop.TableDrivenPropertyChecks
-import java.util.UUID
 
 import scala.collection.immutable.Seq
 
@@ -54,8 +54,8 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
-      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(ResourceRole.Unreserved))
-      res.scalarMatch(Resource.MEM).get.roles should be(Seq(ResourceRole.Unreserved))
+      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
+      res.scalarMatch(Resource.MEM).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
       res.scalarMatch(Resource.DISK) should be(empty)
 
       res.hostPorts should have size 2
@@ -74,8 +74,8 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
-      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(ResourceRole.Unreserved))
-      res.scalarMatch(Resource.MEM).get.roles should be(Seq(ResourceRole.Unreserved))
+      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
+      res.scalarMatch(Resource.MEM).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
       res.scalarMatch(Resource.DISK) should be(empty)
 
       res.hostPorts should have size 2
@@ -102,8 +102,8 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
-      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(ResourceRole.Unreserved))
-      res.scalarMatch(Resource.MEM).get.roles should be(Seq(ResourceRole.Unreserved))
+      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
+      res.scalarMatch(Resource.MEM).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
       res.scalarMatch(Resource.DISK) should be(empty)
 
       res.hostPorts should have size 2
@@ -131,8 +131,8 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
-      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(ResourceRole.Unreserved))
-      res.scalarMatch(Resource.MEM).get.roles should be(Seq(ResourceRole.Unreserved))
+      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
+      res.scalarMatch(Resource.MEM).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
       res.scalarMatch(Resource.DISK) should be(empty)
 
       res.hostPorts should have size 3
@@ -174,21 +174,22 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
       res.scalarMatches should have size 3
+
       res.scalarMatch(Resource.CPUS).get.consumed.toSet should be(
         Set(
-          GeneralScalarMatch.Consumption(1.0, "marathon", None, reservation = Some(cpuReservation)),
-          GeneralScalarMatch.Consumption(1.0, "marathon", None, reservation = Some(cpuReservation2))
+          GeneralScalarMatch.Consumption(1.0, Some("marathon"), None, reservation = Some(cpuReservation), None),
+          GeneralScalarMatch.Consumption(1.0, Some("marathon"), None, reservation = Some(cpuReservation2), None)
         )
       )
 
       res.scalarMatch(Resource.MEM).get.consumed.toSet should be(
         Set(
-          GeneralScalarMatch.Consumption(128.0, ResourceRole.Unreserved, None, reservation = Some(memReservation))
+          GeneralScalarMatch.Consumption(128.0, Some(ResourceRole.Unreserved), None, reservation = Some(memReservation), None)
         )
       )
       res.scalarMatch(Resource.DISK).get.consumed.toSet should be(
         Set(
-          DiskResourceMatch.Consumption(2.0, ResourceRole.Unreserved, Some(ResourceProviderID("pID")),
+          DiskResourceMatch.Consumption(2.0, Some(ResourceRole.Unreserved), Some(ResourceProviderID("pID")),
             Some(diskReservation2), DiskSource.root, None)
         )
       )
@@ -236,20 +237,20 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       res.scalarMatches should have size 3
       res.scalarMatch(Resource.CPUS).get.consumed.toSet should be(
         Set(
-          GeneralScalarMatch.Consumption(1.0, "marathon", None, reservation = Some(cpuReservation)),
-          GeneralScalarMatch.Consumption(1.0, "marathon", None, reservation = Some(cpuReservation2))
+          GeneralScalarMatch.Consumption(1.0, Some("marathon"), None, reservation = Some(cpuReservation), None),
+          GeneralScalarMatch.Consumption(1.0, Some("marathon"), None, reservation = Some(cpuReservation2), None)
         )
       )
 
       res.scalarMatch(Resource.MEM).get.consumed.toSet should be(
         Set(
-          GeneralScalarMatch.Consumption(128.0, ResourceRole.Unreserved, None, reservation = Some(memReservation))
+          GeneralScalarMatch.Consumption(128.0, Some(ResourceRole.Unreserved), None, reservation = Some(memReservation), None)
         )
       )
       res.scalarMatch(Resource.DISK).get.consumed.toSet should be(
         Set(
           DiskResourceMatch.Consumption(
-            2.0, ResourceRole.Unreserved, None, reservation = Some(diskReservation), DiskSource.root, None)
+            2.0, Some(ResourceRole.Unreserved), None, reservation = Some(diskReservation), DiskSource.root, None)
         )
       )
 
@@ -332,8 +333,8 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
-      res.scalarMatch(Resource.CPUS).get.roles should be(Seq("marathon"))
-      res.scalarMatch(Resource.MEM).get.roles should be(Seq("marathon"))
+      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(Some("marathon")))
+      res.scalarMatch(Resource.MEM).get.roles should be(Seq(Some("marathon")))
       res.scalarMatch(Resource.DISK) should be(empty)
     }
 
@@ -710,9 +711,9 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
 
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch.scalarMatch("disk").get.consumed.toSet shouldBe Set(
-        DiskResourceMatch.Consumption(1024.0, "*", None, None, DiskSource(DiskType.Path, Some("/path2"), None, None, None),
+        DiskResourceMatch.Consumption(1024.0, Some("*"), None, None, DiskSource(DiskType.Path, Some("/path2"), None, None, None),
           Some(VolumeWithMount(persistentVolume, mount))),
-        DiskResourceMatch.Consumption(476.0, "*", None, None, DiskSource(DiskType.Path, Some("/path2"), None, None, None),
+        DiskResourceMatch.Consumption(476.0, Some("*"), None, None, DiskSource(DiskType.Path, Some("/path2"), None, None, None),
           Some(VolumeWithMount(persistentVolume, mount))))
     }
 
@@ -880,8 +881,8 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
       resourceMatchResponse shouldBe a[ResourceMatchResponse.Match]
       val res = resourceMatchResponse.asInstanceOf[ResourceMatchResponse.Match].resourceMatch
 
-      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(ResourceRole.Unreserved))
-      res.scalarMatch(Resource.MEM).get.roles should be(Seq(ResourceRole.Unreserved))
+      res.scalarMatch(Resource.CPUS).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
+      res.scalarMatch(Resource.MEM).get.roles should be(Seq(Some(ResourceRole.Unreserved)))
       res.scalarMatch(Resource.DISK) should be(empty)
     }
 
@@ -1251,6 +1252,7 @@ class ResourceMatcherTest extends UnitTest with Inside with TableDrivenPropertyC
   }
 
   val appId = PathId("/test")
+
   def instance(id: String, version: Timestamp, attrs: Map[String, String]): Instance = { // linter:ignore:UnusedParameter
     val attributes: Seq[Attribute] = attrs.map {
       case (name, v) => TextAttribute(name, v): Attribute

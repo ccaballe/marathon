@@ -93,11 +93,13 @@ trait Implicits {
           .setRole(role)
           .build: @silent
       case ScalarResource(name, value, role) =>
-        Protos.Resource.newBuilder
+        val resourceBuilder = Protos.Resource.newBuilder
           .setType(Protos.Value.Type.SCALAR)
           .setName(name)
           .setScalar(Protos.Value.Scalar.newBuilder.setValue(value))
-          .setRole(role)
+        if (role.isDefined)
+          resourceBuilder.setRole(role.get)
+        resourceBuilder
           .build: @silent
       case SetResource(name, items, role) =>
         val set = Protos.Value.Set.newBuilder
@@ -126,7 +128,7 @@ trait Implicits {
         ScalarResource(
           resource.getName,
           resource.getScalar.getValue,
-          resource.getRole: @silent
+          Option(resource.getRole): @silent
         )
       case Protos.Value.Type.SET =>
         SetResource(

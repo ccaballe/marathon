@@ -102,10 +102,10 @@ object MarathonTestHelper {
       }
     }
 
-    val cpusResource = heedReserved(ScalarResource(Resource.CPUS, cpus, role = role))
-    val gpuResource = heedReserved(ScalarResource(Resource.GPUS, gpus, role = role))
-    val memResource = heedReserved(ScalarResource(Resource.MEM, mem, role = role))
-    val diskResource = heedReserved(ScalarResource(Resource.DISK, disk, role = role))
+    val cpusResource = heedReserved(ScalarResource(Resource.CPUS, cpus, role = Option(role)))
+    val gpuResource = heedReserved(ScalarResource(Resource.GPUS, gpus, role = Option(role)))
+    val memResource = heedReserved(ScalarResource(Resource.MEM, mem, role = Option(role)))
+    val diskResource = heedReserved(ScalarResource(Resource.DISK, disk, role = Option(role)))
     val portsResource = if (beginPort <= endPort) {
       Some(heedReserved(RangesResource(
         Resource.PORTS,
@@ -279,9 +279,9 @@ object MarathonTestHelper {
     */
   def makeBasicOfferWithManyPortRanges(ranges: Int): Offer.Builder = {
     val role = ResourceRole.Unreserved
-    val cpusResource = ScalarResource(Resource.CPUS, 4.0, role = role)
-    val memResource = ScalarResource(Resource.MEM, 16000, role = role)
-    val diskResource = ScalarResource(Resource.DISK, 1.0, role = role)
+    val cpusResource = ScalarResource(Resource.CPUS, 4.0, role = Option(role))
+    val memResource = ScalarResource(Resource.MEM, 16000, role = Option(role))
+    val diskResource = ScalarResource(Resource.DISK, 1.0, role = Option(role))
     val portsResource = RangesResource(
       Resource.PORTS,
       List.tabulate(ranges)(_ * 2 + 1).map(p => Range(p.toLong, (p + 1).toLong)),
@@ -308,9 +308,9 @@ object MarathonTestHelper {
       Seq(Range(beginPort.toLong, endPort.toLong)),
       role
     )
-    val cpusResource = ScalarResource(Resource.CPUS, cpus, role)
-    val memResource = ScalarResource(Resource.MEM, mem, role)
-    val diskResource = ScalarResource(Resource.DISK, disk, role)
+    val cpusResource = ScalarResource(Resource.CPUS, cpus, Option(role))
+    val memResource = ScalarResource(Resource.MEM, mem, Option(role))
+    val diskResource = ScalarResource(Resource.DISK, disk, Option(role))
     Offer.newBuilder
       .setId(OfferID("1"))
       .setFrameworkId(frameworkID)
@@ -330,7 +330,7 @@ object MarathonTestHelper {
       .setTaskId(taskId)
       .setSlaveId(SlaveID("slave1"))
       .setCommand(CommandInfo.newBuilder().setShell(true).addArguments("true"))
-      .addResources(ScalarResource(Resource.CPUS, 1.0, ResourceRole.Unreserved))
+      .addResources(ScalarResource(Resource.CPUS, 1.0, Option(ResourceRole.Unreserved)))
   }
 
   def makeBasicApp(id: PathId = "/test-app".toPath) = AppDefinition(

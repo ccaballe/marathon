@@ -62,8 +62,17 @@ object ResourceMatcher extends StrictLogging {
       // resources with disks are matched by the VolumeMatcher or not at all
       val noAssociatedVolume = !(resource.hasDisk && resource.getDisk.hasVolume)
       def matchesLabels: Boolean = labelMatcher.matches(reservationLabels(resource))
+      // accepted roles must be offer role to be adapted to dynamic reservations
+      logger.info(s"------------------------ $acceptedRoles ------------------------------")
+      // If reservation is dynamic, can be with or without reservation refinement
+      val role = if (resource.getReservationsList.size() > 0)
+        resource.getAllocationInfo.getRole: @silent
+      else
+        // Then we consider static reservation or unreserved roles
+        resource.getRole
+      logger.info(s"------------------------ ACCEPTED ROLES ARE: $acceptedRoles ----. We are going to consider $role -------------------------- ")
 
-      noAssociatedVolume && acceptedRoles(resource.getRole: @silent) && matchesLabels
+      noAssociatedVolume && acceptedRoles(role) && matchesLabels
     }
 
     override def toString: String = {
@@ -176,13 +185,14 @@ object ResourceMatcher extends StrictLogging {
       diskResourceMatch(runSpec.resources.disk, Nil, ScalarMatchResult.Scope.ExcludingLocalVolumes)
     }
 
-    val scalarMatchResults = (
+    val scalarMatchResults_ = (
       Seq(
         scalarResourceMatch(Resource.CPUS, runSpec.resources.cpus, ScalarMatchResult.Scope.NoneDisk),
         scalarResourceMatch(Resource.MEM, runSpec.resources.mem, ScalarMatchResult.Scope.NoneDisk),
         scalarResourceMatch(Resource.GPUS, runSpec.resources.gpus.toDouble, ScalarMatchResult.Scope.NoneDisk)) ++
         diskMatch
-    ).filter(_.requiredValue != 0)
+    )
+    val scalarMatchResults = scalarMatchResults_.filter(_.requiredValue != 0)
 
     // add scalar resources to noOfferMatchReasons
     val noOfferMatchReasons = scalarMatchResults
@@ -456,7 +466,7 @@ object ResourceMatcher extends StrictLogging {
               val consumption =
                 DiskResourceMatch.Consumption(
                   consumedAmount,
-                  role = matchedResource.getRole: @silent,
+                  role = Option(matchedResource.getRole): @silent,
                   providerId = if (matchedResource.hasProviderId) Option(ResourceProviderID(matchedResource.getProviderId.getValue)) else None,
                   reservation = if (matchedResource.hasReservation) Option(matchedResource.getReservation) else None,
                   source = DiskSource.fromMesos(matchedResource.getDiskSourceOption),
@@ -554,7 +564,12 @@ object ResourceMatcher extends StrictLogging {
             val newValueLeft = valueLeft - consume
             val providerId = if (nextResource.hasProviderId) Option(ResourceProviderID(nextResource.getProviderId.getValue)) else None
             val reservation = if (nextResource.hasReservation) Option(nextResource.getReservation) else None
-            val consumedValue = GeneralScalarMatch.Consumption(consume, nextResource.getRole: @silent, providerId, reservation)
+
+            val consumedValue =
+              if (nextResource.getReservationsList.size() > 0)
+                GeneralScalarMatch.Consumption(consume, None, providerId, reservation, Some(nextResource.getReservationsList))
+              else
+                GeneralScalarMatch.Consumption(consume, Option(nextResource.getRole): @silent, providerId, reservation, None)
 
             consumeResources(newValueLeft, restResources, (decrementedResource ++ resourcesNotConsumed).toList,
               consumedValue :: resourcesConsumed, matcher)
@@ -571,6 +586,7 @@ object ResourceMatcher extends StrictLogging {
     scalarMatchResults: Seq[ScalarMatchResult]): Unit = {
     if (scalarMatchResults.exists(!_.matches)) {
       val basicResourceString = scalarMatchResults.mkString(", ")
+      logger.info(s"--------------OFERTA RECHAZADA ------------- $offer")
       logger.info(
         s"Offer [${offer.getId.getValue}]. " +
           s"$selector. " +

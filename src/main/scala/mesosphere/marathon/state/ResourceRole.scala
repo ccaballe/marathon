@@ -30,7 +30,6 @@ object ResourceRole {
       isTrue[Char](message.format("form feed (\\x0c)")) { char => char != '\u000c'; } and
       isTrue[Char](message.format("carriage return (\\x0d)")) { char => char != '\u000d'; } and
       isTrue[Char](message.format("space (\\x20)")) { char => char != '\u0020'; } and
-      isTrue[Char](message.format("slash (\\x2f)")) { char => char != '\u002f'; } and
       isTrue[Char](message.format("backspace (\\x7f)")) { char => char != '\u007f'; }
   }
 

@@ -292,7 +292,6 @@ private[impl] class OfferMatcherManagerActor private (
     deadline: Timestamp,
     promise: Promise[OfferMatcher.MatchedInstanceOps]): Unit = {
     logger.info(s"Start processing offer ${offer.getId.getValue}. Current offer matcher count: ${offerQueues.size}")
-
     // setup initial offer data
     val randomizedMatchers = offerMatchers(offer)
     val data = OfferMatcherManagerActor.MatchOfferData(offer, deadline, promise, randomizedMatchers)

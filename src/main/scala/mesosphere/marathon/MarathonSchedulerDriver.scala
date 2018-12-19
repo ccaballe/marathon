@@ -11,10 +11,10 @@ import com.typesafe.scalalogging.StrictLogging
 object MarathonSchedulerDriver extends StrictLogging {
 
   def newDriver(
-                 config: MarathonConf,
-                 httpConfig: HttpConf,
-                 newScheduler: Scheduler,
-                 frameworkId: Option[FrameworkID]): SchedulerDriver = {
+    config: MarathonConf,
+    httpConfig: HttpConf,
+    newScheduler: Scheduler,
+    frameworkId: Option[FrameworkID]): SchedulerDriver = {
 
     logger.info(s"Create new Scheduler Driver with frameworkId: $frameworkId and scheduler $newScheduler")
 
@@ -29,9 +29,10 @@ object MarathonSchedulerDriver extends StrictLogging {
     val roles: Seq[String] = config.mesosRoles.toOption.getOrElse(Seq.empty[String])
     if (!roles.isEmpty) {
       frameworkInfoBuilder.addCapabilitiesBuilder.setType(FrameworkInfo.Capability.Type.MULTI_ROLE)
+      frameworkInfoBuilder.addCapabilitiesBuilder.setType(FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT)
+
       roles.foreach(role => frameworkInfoBuilder.addRoles(role))
-    }
-    else if (roles.isEmpty)
+    } else if (roles.isEmpty)
       config.mesosRole.foreach(frameworkInfoBuilder.setRole: @silent)
 
     // Set the ID, if provided

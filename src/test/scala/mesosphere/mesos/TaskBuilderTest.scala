@@ -339,9 +339,9 @@ class TaskBuilderTest extends UnitTest {
 
       def resource(name: String): Resource = taskInfo.getResourcesList.find(_.getName == name).get
 
-      assert(resource("cpus") == ScalarResource("cpus", 1))
-      assert(resource("mem") == ScalarResource("mem", 64))
-      assert(resource("disk") == ScalarResource("disk", 1))
+      assert(resource("cpus") == ScalarResource("cpus", 1, Some("*")))
+      assert(resource("mem") == ScalarResource("mem", 64, Some("*")))
+      assert(resource("disk") == ScalarResource("disk", 1, Some("*")))
       val portsResource: Resource = resource("ports")
       assert(portsResource.getRanges.getRangeList.map(range => range.getEnd - range.getBegin + 1).sum == 2)
       assert(portsResource.getRole == ResourceRole.Unreserved: @silent)
@@ -389,9 +389,9 @@ class TaskBuilderTest extends UnitTest {
 
       def resource(name: String): Resource = taskInfo.getResourcesList.find(_.getName == name).get
 
-      assert(resource("cpus") == ScalarResource("cpus", 1, "marathon"))
-      assert(resource("mem") == ScalarResource("mem", 64, "marathon"))
-      assert(resource("disk") == ScalarResource("disk", 1, "marathon"))
+      assert(resource("cpus") == ScalarResource("cpus", 1, Some("marathon")))
+      assert(resource("mem") == ScalarResource("mem", 64, Some("marathon")))
+      assert(resource("disk") == ScalarResource("disk", 1, Some("marathon")))
       val portsResource: Resource = resource("ports")
       assert(portsResource.getRanges.getRangeList.map(range => range.getEnd - range.getBegin + 1).sum == 2)
       assert(portsResource.getRole == "marathon": @silent)
@@ -419,7 +419,7 @@ class TaskBuilderTest extends UnitTest {
 
       def resource(name: String): Resource = taskInfo.getResourcesList.find(_.getName == name).get
 
-      assert(resource("cpus") == ScalarResource("cpus", 1)) // sanity, we DID match the offer, right?
+      assert(resource("cpus") == ScalarResource("cpus", 1, Some("*"))) // sanity, we DID match the offer, right?
 
       // check protobuf construction, should be a ContainerInfo w/ volumes
       def vol(path: String): Option[MesosProtos.Volume] = {
@@ -464,7 +464,7 @@ class TaskBuilderTest extends UnitTest {
 
       def resource(name: String): Resource = taskInfo.getResourcesList.find(_.getName == name).get
 
-      assert(resource("cpus") == ScalarResource("cpus", 1)) // sanity, we DID match the offer, right?
+      assert(resource("cpus") == ScalarResource("cpus", 1, Some("*"))) // sanity, we DID match the offer, right?
 
       // check protobuf construction, should be a ContainerInfo w/ volumes
       def vol(name: String): Option[MesosProtos.Volume] = {
@@ -526,7 +526,7 @@ class TaskBuilderTest extends UnitTest {
 
       def resource(name: String): Resource = taskInfo.getResourcesList.find(_.getName == name).get
 
-      assert(resource("cpus") == ScalarResource("cpus", 1)) // sanity, we DID match the offer, right?
+      assert(resource("cpus") == ScalarResource("cpus", 1, Some("*"))) // sanity, we DID match the offer, right?
 
       assert(taskInfo.getContainer.getVolumesList.size == 2, "check that container has volumes declared")
 
@@ -588,7 +588,7 @@ class TaskBuilderTest extends UnitTest {
 
       def resource(name: String): Resource = taskInfo.getResourcesList.find(_.getName == name).get
 
-      assert(resource("cpus") == ScalarResource("cpus", 1)) // sanity, we DID match the offer, right?
+      assert(resource("cpus") == ScalarResource("cpus", 1, Some("*"))) // sanity, we DID match the offer, right?
 
       taskInfo.hasContainer should be(false)
       taskInfo.hasCommand should be(false)
@@ -1017,12 +1017,12 @@ class TaskBuilderTest extends UnitTest {
 
     "BuildIfMatchesWithRole" in {
       val offer = MarathonTestHelper.makeBasicOfferWithRole(cpus = 1.0, mem = 128.0, disk = 1000.0, beginPort = 31000, endPort = 32000, role = "marathon")
-        .addResources(ScalarResource("cpus", 1, ResourceRole.Unreserved))
-        .addResources(ScalarResource("mem", 128, ResourceRole.Unreserved))
-        .addResources(ScalarResource("disk", 1000, ResourceRole.Unreserved))
-        .addResources(ScalarResource("cpus", 2, "marathon"))
-        .addResources(ScalarResource("mem", 256, "marathon"))
-        .addResources(ScalarResource("disk", 2000, "marathon"))
+        .addResources(ScalarResource("cpus", 1, Some(ResourceRole.Unreserved)))
+        .addResources(ScalarResource("mem", 128, Some(ResourceRole.Unreserved)))
+        .addResources(ScalarResource("disk", 1000, Some(ResourceRole.Unreserved)))
+        .addResources(ScalarResource("cpus", 2, Some("marathon")))
+        .addResources(ScalarResource("mem", 256, Some("marathon")))
+        .addResources(ScalarResource("disk", 2000, Some("marathon")))
         .addResources(RangesResource(Resource.PORTS, Seq(protos.Range(33000, 34000)), "marathon"))
         .build
 
@@ -1056,12 +1056,12 @@ class TaskBuilderTest extends UnitTest {
 
     "BuildIfMatchesWithRole2" in {
       val offer = MarathonTestHelper.makeBasicOfferWithRole(cpus = 1.0, mem = 128.0, disk = 1000.0, beginPort = 31000, endPort = 32000, role = ResourceRole.Unreserved)
-        .addResources(ScalarResource("cpus", 1, ResourceRole.Unreserved))
-        .addResources(ScalarResource("mem", 128, ResourceRole.Unreserved))
-        .addResources(ScalarResource("disk", 1000, ResourceRole.Unreserved))
-        .addResources(ScalarResource("cpus", 2, "marathon"))
-        .addResources(ScalarResource("mem", 256, "marathon"))
-        .addResources(ScalarResource("disk", 2000, "marathon"))
+        .addResources(ScalarResource("cpus", 1, Some(ResourceRole.Unreserved)))
+        .addResources(ScalarResource("mem", 128, Some(ResourceRole.Unreserved)))
+        .addResources(ScalarResource("disk", 1000, Some(ResourceRole.Unreserved)))
+        .addResources(ScalarResource("cpus", 2, Some("marathon")))
+        .addResources(ScalarResource("mem", 256, Some("marathon")))
+        .addResources(ScalarResource("disk", 2000, Some("marathon")))
         .addResources(RangesResource(Resource.PORTS, Seq(protos.Range(33000, 34000)), "marathon"))
         .build
 

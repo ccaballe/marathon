@@ -60,7 +60,7 @@ case class NoMatch(resourceName: String, requiredValue: Double, offeredValue: Do
 sealed trait ScalarMatch extends ScalarMatchResult {
   final def matches: Boolean = true
   def consumedResources: Seq[Protos.Resource]
-  def roles: Seq[String]
+  def roles: Seq[Option[String]]
   def consumed: Seq[ScalarMatchResult.Consumption]
 }
 
@@ -73,8 +73,9 @@ case class GeneralScalarMatch(
   require(consumedValue >= requiredValue)
 
   def consumedResources: Seq[Protos.Resource] = {
+    // TODO dropdown reservations
     consumed.map {
-      case GeneralScalarMatch.Consumption(value, role, providerId, reservation) =>
+      case GeneralScalarMatch.Consumption(value, role, providerId, reservation, reservations) =>
         import mesosphere.mesos.protos.Implicits._
         val builder = ScalarResource(resourceName, value, role).toBuilder
         providerId.foreach { providerId =>
@@ -82,11 +83,12 @@ case class GeneralScalarMatch(
           builder.setProviderId(providerIdProto)
         }
         reservation.foreach(builder.setReservation)
+        reservations.foreach(builder.addAllReservations(_))
         builder.build()
     }
   }
 
-  def roles: Seq[String] = consumed.map(_.role)
+  def roles: Seq[Option[String]] = consumed.map(_.role)
 
   lazy val consumedValue: Double = consumed.map(_.consumedValue).sum
 
@@ -97,8 +99,8 @@ case class GeneralScalarMatch(
 
 object GeneralScalarMatch {
   /** A (potentially partial) consumption of a scalar resource. */
-  case class Consumption(consumedValue: Double, role: String,
-      providerId: Option[ResourceProviderID], reservation: Option[ReservationInfo]) extends ScalarMatchResult.Consumption
+  case class Consumption(consumedValue: Double, role: Option[String],
+      providerId: Option[ResourceProviderID], reservation: Option[ReservationInfo], reservations: Option[java.util.List[ReservationInfo]]) extends ScalarMatchResult.Consumption
 }
 
 case class DiskResourceMatch(
@@ -128,7 +130,7 @@ case class DiskResourceMatch(
     }
   }
 
-  def roles: Seq[String] = consumed.map(_.role)
+  def roles: Seq[Option[String]] = consumed.map(_.role)
 
   /**
     * return all volumes for this disk resource match
@@ -147,14 +149,14 @@ case class DiskResourceMatch(
 
 object DiskResourceMatch {
   /** A (potentially partial) consumption of a scalar resource. */
-  case class Consumption(consumedValue: Double, role: String,
+  case class Consumption(consumedValue: Double, role: Option[String],
       providerId: Option[ResourceProviderID], reservation: Option[ReservationInfo], source: DiskSource,
       persistentVolumeWithMount: Option[VolumeWithMount[PersistentVolume]]) extends ScalarMatchResult.Consumption {
 
     def requested: Either[Double, VolumeWithMount[PersistentVolume]] =
       persistentVolumeWithMount.map(Right(_)).getOrElse(Left(consumedValue))
   }
-  type ApplyFn = ((Double, String, Option[ResourceProviderID], Option[ReservationInfo], DiskSource, Option[VolumeWithMount[PersistentVolume]]) => Consumption)
+  type ApplyFn = ((Double, Option[String], Option[ResourceProviderID], Option[ReservationInfo], DiskSource, Option[VolumeWithMount[PersistentVolume]]) => Consumption)
   object Consumption extends ApplyFn {
     def apply(
       c: GeneralScalarMatch.Consumption,
