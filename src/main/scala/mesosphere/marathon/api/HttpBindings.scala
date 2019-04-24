@@ -21,6 +21,7 @@ object HttpBindings {
     leaderProxyFilter: LeaderProxyFilter,
     limitConcurrentRequestsFilter: LimitConcurrentRequestsFilter,
     corsFilter: CORSFilter,
+    sslAuthFilter: SSLAuthFilter,
     cacheDisablingFilter: CacheDisablingFilter,
     eventSourceServlet: EventSourceServlet,
     webJarServlet: WebJarServlet,
@@ -38,6 +39,7 @@ object HttpBindings {
     addFilter("/*", leaderProxyFilter)
     addFilter("/*", limitConcurrentRequestsFilter)
     addFilter("/*", corsFilter)
+    addFilter("/*", sslAuthFilter)
     addFilter("/*", cacheDisablingFilter)
     addServlet(EventsPath, eventSourceServlet)
 

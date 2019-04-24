@@ -100,6 +100,9 @@ class HttpModule(conf: HttpConf, metricsModule: MetricsModule) extends StrictLog
       contextFactory.setKeyStorePath(keystorePath)
       contextFactory.setKeyStorePassword(keystorePassword)
 
+      if (conf.sslClientAuth())
+        contextFactory.setNeedClientAuth(true)
+
       val sslConfig = new HttpConfiguration(httpConfig)
       sslConfig.addCustomizer(new SecureRequestCustomizer())
 

@@ -74,6 +74,20 @@ trait HttpConf extends ScallopConf {
     prefix = "disable_"
   )
 
+  lazy val sslClientAuth = opt[Boolean](
+    "ssl_client_auth",
+    descr = "Enable client ssl authentication.",
+    default = Some(false),
+    noshort = true
+  )
+
+  lazy val allowedCNs = opt[String](
+    "allowed_common_names",
+    descr = "Allowed common names separated by commas ",
+    default = Some("*"),
+    noshort = true
+  )
+
   @deprecated("Asset path is not supported.", since = "0.8.5")
   lazy val assetsFileSystemPath = opt[String](
     "assets_path",

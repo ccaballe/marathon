@@ -70,6 +70,7 @@ class MarathonApp(args: Seq[String]) extends AutoCloseable with StrictLogging {
       leaderProxyFilter = injector.getInstance(classOf[api.LeaderProxyFilter]),
       limitConcurrentRequestsFilter = injector.getInstance(classOf[api.LimitConcurrentRequestsFilter]),
       corsFilter = injector.getInstance(classOf[api.CORSFilter]),
+      sslAuthFilter = injector.getInstance(classOf[api.SSLAuthFilter]),
       cacheDisablingFilter = injector.getInstance(classOf[api.CacheDisablingFilter]),
       eventSourceServlet = injector.getInstance(classOf[EventSourceServlet]),
       webJarServlet = injector.getInstance(classOf[api.WebJarServlet]),
